@@ -10,8 +10,11 @@
             "src/Differ.php"
         ],
         "psr-4": {
-            "Hexlet\\Code\\": "src/"
+            "Gendiff\\Tests\\": "tests"
         }
+    },
+    "scripts": {
+        "test": "phpunit tests"
     },
     "authors": [
         {
