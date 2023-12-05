@@ -31,4 +31,4 @@ $firstFilePath = $args['<firstFilePath>'];
 $secondFilePath = $args['<secondFilePath>'];
 $format = $args['--format'];
 
-print_r(genDiff($firstFilePath, $secondFilePath));
+print_r(genDiff($firstFilePath, $secondFilePath,$format));
