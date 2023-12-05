@@ -11,6 +11,8 @@ function getTreeByFormat(string $format, array $tree): string
     switch ($format) {
         case 'stylish':
             return Stylish\format($tree);
+        case 'plain':
+            return Plain\format($tree);
         case 'json':
             return Json\format($tree);
         default:
