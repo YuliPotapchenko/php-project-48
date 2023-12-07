@@ -1,37 +1,27 @@
 name: tests
 
-on:
-  push:
-    branches:
-      - '**'
-    tags:
-      - '**'
+on: push
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
-
-      - name: Setup
-          uses: shivammathur/setup-php@v2
-          with:
-            php-version: '8.1'
-
-      - name: install
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2 '
+      - name: Install
         run: make install
-
-      - name: linter
+      - name: Run linter
         run: make lint
-
-      - name: testDiffer
-        run: make test
-
-      - name: code-coverage
-          uses: paambaati/codeclimate-action@v5
-          env:
-            CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
-          with:
-            coverageCommand: make report
-            coverageLocations: ${{github.workplace}}/build/logs/clover.xml:clover
-            debug: true
+      - name: Run test & publish code coverage
+        uses: paambaati/codeclimate-action@v2.6.0
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        with:
+          coverageCommand: make test
+          coverageLocations: ${{github.workplace}}/build/logs/clover.xml:clover
+          debug: true
