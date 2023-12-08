@@ -10,6 +10,7 @@ class DifferTest extends TestCase
 {
     public function testGendiffJson(): void
     {
+        file_put_contents(__DIR__.'/log-expect.txt',print_r(gendiff("./tests/fixtures/file1.yaml", "./tests/fixtures/file2.yaml")));
         $expected1 = file_get_contents("./tests/fixtures/SucsessDifferYaml.txt");
         $this->assertEquals($expected1, gendiff("./tests/fixtures/file1.yaml", "./tests/fixtures/file2.yaml"));
 
