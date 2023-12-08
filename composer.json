@@ -32,9 +32,7 @@
         "lstrojny/functional-php": "*"
     },
     "require-dev": {
-        "phpunit/dbunit": "^2.0",
-        "phpunit/phpunit": "^5.2",
         "phpstan/phpstan": "*",
-        "squizlabs/php_codesniffer": "*"
+        "phpunit/phpunit": "10.0.0"
     }
 }
