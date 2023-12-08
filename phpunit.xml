@@ -1,31 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
-         bootstrap="vendor/autoload.php"
-         colors="true"
-         backupGlobals="false"
-         backupStaticAttributes="false"
-         convertErrorsToExceptions="true"
-         convertNoticesToExceptions="true"
-         convertWarningsToExceptions="true"
-         processIsolation="false"
-         stopOnFailure="false">
+         xsi:noNamespaceSchemaLocation="phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         cacheDirectory=".phpunit.cache"
+         beStrictAboutOutputDuringTests="true"
+         failOnRisky="true"
+         failOnWarning="true"
+         colors="true">
     <testsuites>
-        <testsuite name="Tests">
-            <directory suffix="Test.php">./tests</directory>
+        <testsuite name="unit">
+            <directory>tests/unit</directory>
+        </testsuite>
+
+        <testsuite name="end-to-end">
+            <directory suffix=".phpt">tests/end-to-end/cli</directory>
+            <directory suffix=".phpt">tests/end-to-end/event</directory>
+            <directory suffix=".phpt">tests/end-to-end/execution-order</directory>
+            <directory suffix=".phpt">tests/end-to-end/generic</directory>
+            <directory suffix=".phpt">tests/end-to-end/logging</directory>
+            <directory suffix=".phpt">tests/end-to-end/migration</directory>
+            <directory suffix=".phpt">tests/end-to-end/mock-objects</directory>
+            <directory suffix=".phpt">tests/end-to-end/phpt</directory>
+            <directory suffix=".phpt">tests/end-to-end/regression</directory>
+            <directory suffix=".phpt">tests/end-to-end/testdox</directory>
+
+            <exclude>tests/end-to-end/event/_files</exclude>
+            <exclude>tests/end-to-end/execution-order/_files</exclude>
+            <exclude>tests/end-to-end/logging/_files</exclude>
+            <exclude>tests/end-to-end/migration/_files</exclude>
+            <exclude>tests/end-to-end/testdox/_files</exclude>
         </testsuite>
     </testsuites>
-    <filter>
-        <whitelist processUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">./app</directory>
-        </whitelist>
-    </filter>
+
+    <coverage ignoreDeprecatedCodeUnits="true">
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+
+        <exclude>
+            <file>src/Framework/Assert/Functions.php</file>
+        </exclude>
+    </coverage>
+
     <php>
-        <server name="APP_ENV" value="testing"/>
-        <server name="BCRYPT_ROUNDS" value="4"/>
-        <server name="CACHE_DRIVER" value="array"/>
-        <server name="MAIL_MAILER" value="array"/>
-        <server name="QUEUE_CONNECTION" value="sync"/>
-        <server name="SESSION_DRIVER" value="array"/>
+        <ini name="precision" value="14"/>
+        <ini name="serialize_precision" value="14"/>
+
+        <const name="PHPUNIT_TESTSUITE" value="true"/>
     </php>
 </phpunit>
