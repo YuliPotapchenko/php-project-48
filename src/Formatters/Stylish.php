@@ -2,76 +2,61 @@
 
 namespace Format\Stylish;
 
-function toString(array $arrayValue, int $depth): string
+const NUMBERINDENTS = 4;
+
+function makeStylishFormat(array $astTree): string
 {
-    $keys = array_keys($arrayValue);
-    $inDepth = $depth + 1;
-    $result = array_map(function ($key) use ($arrayValue, $inDepth): string {
-        $val = showValue($arrayValue[$key], $inDepth);
-        $indent = getIndent($inDepth);
-        $result = PHP_EOL . "{$indent}{$key}: {$val}";
-        return $result;
-    }, $keys);
-    return implode('', $result);
+    return render($astTree);
 }
 
-function showValue(mixed $value, int $depth): string
+function render(array $astTree, int $depth = 0): string
 {
+    $indent = buildIndent($depth, NUMBERINDENTS);
+    $result = array_map(function ($node) use ($depth, $indent) {
+        $deepening = $depth + 1;
+        switch ($node['type']) {
+            case 'parent':
+                return $indent . "    " . $node['key'] . ": " . render($node['children'], $deepening) . "\n";
+            case 'added':
+                $valueAdded = stringify([$node['data2Value']], $deepening);
+                return $indent . "  + " . $node['key'] . ": " . $valueAdded . "\n";
+            case 'removed':
+                $valueRemoved = stringify([$node['data1Value']], $deepening);
+                return $indent . "  - " . $node['key'] . ": " . $valueRemoved . "\n";
+            case 'updated':
+                $valueRemoved = stringify([$node['data1Value']], $deepening);
+                $valueAdd = stringify([$node['data2Value']], $deepening);
+                $nodeRemoved = $node['key'] . ": " . $valueRemoved . "\n";
+                $nodeAdd = $node['key'] . ": " . $valueAdd;
+                return $indent . "  - " . $nodeRemoved . $indent . "  + " . $nodeAdd . "\n";
+            case 'unchanged':
+                $valueUnchanged = stringify([$node['data1Value']], $deepening);
+                return $indent . "    " . $node['key'] . ": " . $valueUnchanged . "\n";
+        }
+    }, $astTree);
+    return '{' . "\n" . implode("", $result) . $indent . '}';
+}
+
+function buildIndent(int $depth, int $numberOfIndents): string
+{
+    return str_repeat(" ", $depth * $numberOfIndents);
+}
+
+function stringify(array $dataValue, int $depth): string
+{
+    $value = $dataValue[0];
     if (is_bool($value)) {
         return $value ? 'true' : 'false';
-    }
-    if (is_null($value)) {
+    } elseif (is_null($value)) {
         return 'null';
+    } elseif (!is_object($value)) {
+        return (string) $value;
     }
-
-    if (is_array($value)) {
-        $result = toString($value, $depth);
-        $indent = getIndent($depth);
-        $bracketsResult = "{{$result}" . PHP_EOL . "{$indent}}";
-        return $bracketsResult;
-    }
-
-    return "{$value}";
-}
-
-function getIndent(int $depth): string
-{
-    return str_repeat('    ', $depth);
-}
-
-function formatToStylish(array $tree, int $depth = 0): array
-{
-    $indent = getIndent($depth);
-    $nextDepth = $depth + 1;
-
-    $list = array_map(function ($node) use ($indent, $nextDepth) {
-        switch ($node['type']) {
-            case '+':
-                $value = showValue($node['value'], $nextDepth);
-                return "{$indent}  + {$node['key']}: {$value}";
-            case '-':
-                $value = showValue($node['value'], $nextDepth);
-                return "{$indent}  - {$node['key']}: {$value}";
-            case 'unchanged':
-                $value = showValue($node['value'], $nextDepth);
-                return "{$indent}    {$node['key']}: {$value}";
-            case '-+':
-                $newValue = showValue($node['newValue'], $nextDepth);
-                $oldValue = showValue($node['oldValue'], $nextDepth);
-                return "{$indent}  - {$node['key']}: {$oldValue}" .
-                PHP_EOL . "{$indent}  + {$node['key']}: {$newValue}";
-            case 'array':
-                $stringNested = implode(PHP_EOL, formatToStylish($node['child'], $nextDepth));
-                return "{$indent}    {$node['key']}: {" . PHP_EOL . "{$stringNested}" . PHP_EOL . "{$indent}    }";
-            default:
-                throw new \Exception("error, default case");
-        }
-    }, $tree);
-    return $list;
-}
-
-function format(array $formatedTree): string
-{
-    $implodeIndent = implode(PHP_EOL, formatToStylish($formatedTree));
-    return "{" . PHP_EOL . $implodeIndent . PHP_EOL . "}";
+    $indent = buildIndent($depth, NUMBERINDENTS);
+    $stringOfArray = array_map(function ($key, $item) use ($depth, $indent) {
+        $deepening = $depth + 1;
+        $typeOfValueOfNode = (is_object($item)) ? stringify([$item], $deepening) : $item;
+        return $indent . "    " . "$key: " . $typeOfValueOfNode . "\n";
+    }, array_keys(get_object_vars($value)), get_object_vars($value));
+    return '{' . "\n" . implode("", $stringOfArray) . $indent . '}';
 }

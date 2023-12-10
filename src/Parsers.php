@@ -1,18 +1,19 @@
 <?php
 
-namespace Parses;
+namespace Parsers;
 
 use Symfony\Component\Yaml\Yaml;
 
-function parse(mixed $data, string $type): array
+function convertingFile(string $fileContent, string $extension): object
 {
-    switch ($type) {
+    switch ($extension) {
         case 'json':
-            return json_decode($data, true);
-        case 'yml':
+            return json_decode($fileContent);
         case 'yaml':
-            return Yaml::parse($data);
+            return Yaml::parse($fileContent, Yaml::PARSE_OBJECT_FOR_MAP);
+        case 'yml':
+            return Yaml::parse($fileContent, Yaml::PARSE_OBJECT_FOR_MAP);
         default:
-            throw new \Exception("Unknown path extension");
+            throw new \Exception("Invalid extension. Extension must be in JSON, YAML or YML");
     }
 }

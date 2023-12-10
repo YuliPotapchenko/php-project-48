@@ -2,20 +2,20 @@
 
 namespace Format;
 
-use Format\Stylish;
-use Format\Plain;
-use Format\Json;
+use function Format\Stylish\makeStylishFormat;
+use function Format\Plain\makePlainFormat;
+use function Format\Json\makeJsonFormat;
 
-function getTreeByFormat(string $format, array $tree): string
+function formatSelection(array $astTree, string $formatter): string
 {
-    switch ($format) {
+    switch ($formatter) {
         case 'stylish':
-            return Stylish\format($tree);
+            return makeStylishFormat($astTree);
         case 'plain':
-            return Plain\format($tree);
+            return makePlainFormat($astTree);
         case 'json':
-            return Json\format($tree);
+            return makeJsonFormat($astTree);
         default:
-            throw new \Exception("Undefined format type");
+            throw new \Exception("Invalid formatter. The format should be 'stylish' , 'plain' or 'json'");
     }
 }

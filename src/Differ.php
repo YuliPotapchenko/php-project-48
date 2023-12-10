@@ -2,42 +2,44 @@
 
 namespace Differ\Differ;
 
-use function Parses\parse;
-use function Format\getTreeByFormat;
+use function Format\formatSelection;
+use function Parsers\convertingFile;
+use function Functional\sort;
 
-function getTree(array $arrOfFileDecode1, array $arrOfFileDecode2)
+function genDiff(string $pathToFirstFile, string $pathToSecondFile, string $formatter = 'stylish'): string
 {
-    $keys = array_unique(array_merge(array_keys($arrOfFileDecode1), array_keys($arrOfFileDecode2)));
-    sort($keys);
-    $map = array_map(function ($key) use ($arrOfFileDecode1, $arrOfFileDecode2) {
-        if (!array_key_exists($key, $arrOfFileDecode1)) {
-            return ['key' => $key, 'value' => $arrOfFileDecode2[$key], 'type' => '+'];
-        }
-        if (!array_key_exists($key, $arrOfFileDecode2)) {
-            return ['key' => $key, 'value' => $arrOfFileDecode1[$key], 'type' => '-'];
-        }
-        if ($arrOfFileDecode1[$key] == $arrOfFileDecode2[$key]) {
-            return ['key' => $key, 'value' => $arrOfFileDecode1[$key], 'type' => 'unchanged'];
-        }
-        return ['key' => $key, 'oldValue' => $arrOfFileDecode1[$key],
-            'newValue' => $arrOfFileDecode2[$key], 'type' => '-+'];
-    }, $keys);
+    $firstFileContent = (string) file_get_contents($pathToFirstFile, true);
+    $secondFileContent = (string) file_get_contents($pathToSecondFile, true);
+    $extensionFirstFile = pathinfo($pathToFirstFile, PATHINFO_EXTENSION);
+    $extensionSecondFile = pathinfo($pathToSecondFile, PATHINFO_EXTENSION);
+    $dataFirstFile = convertingFile($firstFileContent, $extensionFirstFile);
+    $dataSecondFile = convertingFile($secondFileContent, $extensionSecondFile);
+    $astTree = getTree($dataFirstFile, $dataSecondFile);
 
-    return $map;
+    return formatSelection($astTree, $formatter);
 }
 
-function gendiff(string $pathToFile1, string $pathToFile2, string $format = 'stylish'): string
+function getTree(object $dataFirstFile, object $dataSecondFile): array
 {
-    $diff = '';
-
-    $getFile1 = file_get_contents($pathToFile1);
-    $getFile2 = file_get_contents($pathToFile2);
-
-    $arrOfFileDecode1 = parse($getFile1, pathinfo($pathToFile1, PATHINFO_EXTENSION));
-    $arrOfFileDecode2 = parse($getFile2, pathinfo($pathToFile2, PATHINFO_EXTENSION));
-
-    $tree = getTree($arrOfFileDecode1, $arrOfFileDecode2);
-    $formatedTree = getTreeByFormat($format, $tree);
-
-    return $formatedTree;
+    $data1 = get_object_vars($dataFirstFile);
+    $data2 = get_object_vars($dataSecondFile);
+    $mergeKeys = array_merge(array_keys($data1), array_keys($data2));
+    $sortKeys = sort($mergeKeys, fn ($left, $right) => strcmp($left, $right));
+    $orderedKeys = array_unique($sortKeys);
+    return array_map(function ($key) use ($data1, $data2) {
+        if (!array_key_exists($key, $data1)) {
+            return ['key' => $key, 'data2Value' => $data2[$key], 'type' => 'added'];
+        } elseif (!array_key_exists($key, $data2)) {
+            return ['key' => $key, 'data1Value' => $data1[$key], 'type' => 'removed'];
+        }
+        if (is_object($data1[$key]) && is_object($data2[$key])) {
+            $children = getTree($data1[$key], $data2[$key]);
+            return ['key' => $key, 'type' => 'parent', 'children' => $children];
+        }
+        if ($data1[$key] === $data2[$key]) {
+            return  ['key' => $key, 'data1Value' => $data1[$key], 'type' => 'unchanged'];
+        } else {
+            return ['key' => $key, 'data1Value' => $data1[$key], 'data2Value' => $data2[$key], 'type' => 'updated'];
+        }
+    }, $orderedKeys);
 }

@@ -2,52 +2,45 @@
 
 namespace Format\Plain;
 
-function formatToPlain(array $tree, string $path = ''): array
+use function Functional\flatten;
+
+function makePlainFormat(array $astTree): string
 {
-    $result = array_map(function ($node) use ($path) {
-        $property = "{$path}{$node['key']}";
+    $lines = render($astTree, '');
+    $joinedLine = implode("\n", flatten($lines));
+    return "$joinedLine";
+}
+
+function render(array $tree, string $path): array
+{
+    return array_map(function ($node) use ($path) {
         switch ($node['type']) {
-            case '+':
-                $value = showValue($node['value']);
-                return "Property '{$property}' was added with value: {$value}";
-            case '-':
-                return "Property '{$property}' was removed";
+            case 'updated':
+                $data1Value = stringify([$node['data1Value']]);
+                $data2Value = stringify([$node['data2Value']]);
+                return "Property '$path{$node['key']}' was updated. From $data1Value to $data2Value";
+            case 'added':
+                $value = stringify([$node['data2Value']]);
+                return "Property '$path{$node['key']}' was added with value: $value";
+            case 'removed':
+                return "Property '$path{$node['key']}' was removed";
             case 'unchanged':
-                return '';
-            case '-+':
-                $oldValue = showValue($node['oldValue']);
-                $newValue = showValue($node['newValue']);
-                return "Property '{$property}' was updated. From {$oldValue} to {$newValue}";
-            case 'array':
-                $path2 = "{$path}{$node['key']}.";
-                return implode(PHP_EOL, formatToPlain($node['child'], $path2));
-            default:
-                throw new \Exception("error, default case");
+                return [];
+            case 'parent':
+                $newPath = "$path{$node['key']}.";
+                $children = $node['children'];
+                return render($children, $newPath);
         }
     }, $tree);
-    return array_filter($result);
 }
 
-function format(array $data): string
+function stringify(array $dataValue): string
 {
-    $lines = formatToPlain($data);
-    $str = implode(PHP_EOL, $lines);
-    return $str;
-}
-
-function showValue(mixed $value): string
-{
-    if (is_numeric($value)) {
-        return "{$value}";
-    }
-    if (is_bool($value)) {
-        return $value ? 'true' : 'false';
-    }
-    if (is_null($value)) {
+    $value = $dataValue[0];
+    if (is_object($value)) {
+        return "[complex value]";
+    } elseif ($value === null) {
         return 'null';
     }
-    if (is_array($value)) {
-        return '[complex value]';
-    }
-    return "'{$value}'";
+    return var_export($value, true);
 }

@@ -2,7 +2,7 @@
 
 namespace Format\Json;
 
-function format(array $data): string
+function makeJsonFormat(array $astTree): string
 {
-    return json_encode($data);
+    return json_encode($astTree, JSON_THROW_ON_ERROR);
 }
