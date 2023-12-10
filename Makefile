@@ -7,4 +7,4 @@ lint:
 test:
 	composer run-script test
 report:
-	XDEBUG_MODE=coverage composer exec --verbose phpunit tests -- --coverage-html coverage --coverage-filter src
+	composer exec --verbose phpunit tests -- --coverage-clover build/logs/clover.xml
