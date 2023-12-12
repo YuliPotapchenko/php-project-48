@@ -44,11 +44,11 @@ class DifferTest extends TestCase
         $this->assertEquals($expected, genDiff($file1, $file2, "json"));
     }
 
-    public function dataProvider(): array
+    public static function dataProvider(): array
     {
         return [
             ["./tests/fixtures/file1.json", "./tests/fixtures/file2.json"],
-            ["./tests/fixtures/file1.yml", "./tests/fixtures/file2.yml"],
+            ["./tests/fixtures/file1.yaml", "./tests/fixtures/file2.yaml"],
         ];
     }
 }
