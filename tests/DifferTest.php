@@ -8,15 +8,47 @@ use function Differ\Differ\gendiff;
 
 class DifferTest extends TestCase
 {
-    public function testGendiffJson(): void
+    /**
+     * @dataProvider dataProvider
+     */
+    public function testGendiffDefault($file1, $file2): void
     {
-        $expected1 = file_get_contents("./tests/fixtures/SuccessGenDiffJson.txt");
-        $this->assertEquals($expected1, gendiff("./tests/fixtures/file1.json", "./tests/fixtures/file2.json", "json"));
+        $expected = file_get_contents("./tests/fixtures/SuccessGenDiffStylish.txt");
+        $this->assertEquals($expected, genDiff($file1, $file2));
+    }
 
-        $expected2 = file_get_contents("tests/fixtures/SuccessGenDiffStylish.txt");
-        $this->assertEquals($expected2, gendiff("./tests/fixtures/file1.yaml", "./tests/fixtures/file2.yaml", "stylish"));
+    /**
+     * @dataProvider dataProvider
+     */
+    public function testGendiffStylish($file1, $file2): void
+    {
+        $expected = file_get_contents("./tests/fixtures/SuccessGenDiffStylish.txt");
+        $this->assertEquals($expected, genDiff($file1, $file2, "stylish"));
+    }
 
-        $expected3 = file_get_contents("tests/fixtures/SuccessGenDiffPlain.txt");
-        $this->assertEquals($expected3, gendiff("./tests/fixtures/file1.yaml", "./tests/fixtures/file2.yaml", "plain"));
+    /**
+     * @dataProvider dataProvider
+     */
+    public function testGendiffPlain($file1, $file2): void
+    {
+        $expected = file_get_contents("./tests/fixtures/SuccessGenDiffPlain.txt");
+        $this->assertEquals($expected, genDiff($file1, $file2, "plain"));
+    }
+
+    /**
+     * @dataProvider dataProvider
+     */
+    public function testGendiffJson($file1, $file2): void
+    {
+        $expected = file_get_contents("./tests/fixtures/SuccessGenDiffJson.txt");
+        $this->assertEquals($expected, genDiff($file1, $file2, "json"));
+    }
+
+    public function dataProvider(): array
+    {
+        return [
+            ["./tests/fixtures/file1.json", "./tests/fixtures/file2.json"],
+            ["./tests/fixtures/file1.yml", "./tests/fixtures/file2.yml"],
+        ];
     }
 }
